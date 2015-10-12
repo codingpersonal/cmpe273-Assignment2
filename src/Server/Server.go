@@ -2,7 +2,7 @@ package main
 
 import (
     "fmt"
-    "mux-master/mux-master"
+	"github.com/gorilla/mux"
     "net/http"
     "encoding/json"
     "log"

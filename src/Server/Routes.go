@@ -2,7 +2,7 @@ package main
 
 import (
     "net/http"
-     "mux-master/mux-master"
+    "github.com/gorilla/mux"
 )
 
 type Route struct {
