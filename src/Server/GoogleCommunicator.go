@@ -2,7 +2,6 @@ package main
 
 import (
     "net/http"
-//    "strings"
     "encoding/json"
     "fmt"
     "io/ioutil"
