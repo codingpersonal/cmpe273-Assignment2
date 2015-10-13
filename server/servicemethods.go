@@ -36,6 +36,10 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 	    req.Coordinate.Lng = googleresp.Coordinate.Lng
 
 	    // TODO: store the response in the mongo db
+	    success := setData(req.Id,req)
+	    if !success {
+	    	fmt.Println("Unable to create an entry in the database")
+	    }
     }
     
     json.NewEncoder(w).Encode(req)
@@ -53,6 +57,9 @@ func GetLocation(w http.ResponseWriter, r *http.Request) LocationService{
 	var res LocationService
 	
 	//Get the response from Mongo Db for this Location_Id
+	res = getData(location_id)
+	
+	//change this res to the response which needs to be sent back
 	
 	//If error is nil, then fill the response structure
 	res.Id = "Dummy" 
@@ -75,6 +82,10 @@ func DeleteLocation(w http.ResponseWriter, r *http.Request) {
 	location_id := vars["id"]
 	
 	//Delete this location id data from Mongo Db
+	success := deleteData(location_id)
+	if !success {
+		fmt.Println("Unable to delete entry from Mongo Db")
+	}
 }
 
 
@@ -104,6 +115,10 @@ func PutLocation(w http.ResponseWriter, r *http.Request) LocationService {
 	    res.Coordinate.Lng = req.Coordinate.Lng
 
 	    // TODO: store the response in the mongo db for this Location ID 
+	    success:=setData(location_id, res)
+	    if !success {
+	    	fmt.Println("Unable to update data in the database")
+	    }
     }
     
     json.NewEncoder(w).Encode(res)
