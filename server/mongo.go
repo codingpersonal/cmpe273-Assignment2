@@ -20,3 +20,6 @@ func getData(location_id string) LocationService{
 
 func setData(location_id, loc LocationService) bool{
 }
+
+func deleteData(location_id string) bool {
+}
