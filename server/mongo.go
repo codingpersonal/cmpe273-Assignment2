@@ -14,3 +14,9 @@ package main
 //    }
 //    return s
 //}
+
+func getData(location_id string) LocationService{
+}
+
+func setData(location_id, loc LocationService) bool{
+}
