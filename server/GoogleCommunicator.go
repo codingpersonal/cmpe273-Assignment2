@@ -51,7 +51,7 @@ func getGoogleLocation(Address string) GoogleResponse{
 	req1.URL = "http://maps.google.com/maps/api/geocode/json?address="
 	req1.URL += url.QueryEscape(Address)
 	req1.URL += "&sensor=false";
-	fmt.Println("URL formed:"+ req1.URL)
+	fmt.Println("URL formed: "+ req1.URL)
 	
 //	reqBody, err := json.Marshal(req1)
 //	fmt.Println(err);
@@ -60,7 +60,7 @@ func getGoogleLocation(Address string) GoogleResponse{
 	
 	resp, err := client.Do(req)
 	fmt.Println(resp,err);
-	
+
 	if err != nil {
 	fmt.Println("error!");	
 	}
