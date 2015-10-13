@@ -16,7 +16,7 @@ func main() {
 	req1.Address = "1055 E Evelyn Ave Sunnyvale CA"
 	reqBody, err := json.Marshal(req1)
 	
-	req, err := http.NewRequest("DELETE", "http://localhost:8080/locations/1243", strings.NewReader(string(reqBody)))
+	req, err := http.NewRequest("PUT", "http://localhost:8080/locations/1243", strings.NewReader(string(reqBody)))
 	resp, err := client.Do(req)
 
 	fmt.Println(resp,err);
