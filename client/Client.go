@@ -12,22 +12,20 @@ func main() {
 
 	client := &http.Client{}
 	var req LocationService;
-	req.Name = "Saurabh1"
-	req.Address = "1055 E Evelyn Ave"
-	req.City = "Sunnyvale"
+//	req.Name = "Somya Aggarwal"
+	req.Address = "1 facebook way"
+	req.City = "Menlo park"
 	req.State = "CA"
-	req.Zip = "94086"
-	
+	req.Zip = "94025"
+
 	reqBody, err := json.Marshal(req)
-	
-	req1, err := http.NewRequest("PUT", "http://localhost:8080/locations/8081", strings.NewReader(string(reqBody)))
+	req1, err := http.NewRequest("PUT", "http://localhost:8081/locations/5940", strings.NewReader(string(reqBody)))
 	resp, err := client.Do(req1)
 
 	fmt.Println(resp,err);
 	if err != nil {
 	fmt.Println("error!");	
 	}
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	
@@ -35,4 +33,23 @@ func main() {
 	err = json.Unmarshal(body, &res)
 	
 	fmt.Println("Body:",res);
+
+
+//	url := "http://localhost:8081/locations/" + "5940"
+//	fmt.Println("url is : " + url);
+//	req2, err2 := http.NewRequest("GET", url, strings.NewReader(""))
+//	res2, err2 := client.Do(req2)
+//
+//	fmt.Println(res2,err2);
+//	if err2 != nil {
+//	fmt.Println("error!");	
+//	}
+//
+//	defer res2.Body.Close()
+//	body1, err2 := ioutil.ReadAll(res2.Body)
+//	
+//	var res1 LocationService
+//	err2 = json.Unmarshal(body1, &res1)
+//	
+//	fmt.Println("Body:",res1);
 }

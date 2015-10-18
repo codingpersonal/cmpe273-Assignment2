@@ -7,6 +7,9 @@ import (
 		"encoding/json"
 		"github.com/gorilla/mux"
 		"math/rand"
+		"time"
+//	"gopkg.in/mgo.v2/bson"
+
 		"strconv"
 )
 
@@ -14,7 +17,7 @@ import (
 
 // this will vlaidate the response from google with the req asked by user
 func ValidateResponseWithRequest(res LocationService, req LocationService) bool {
-	return res.City == req.City && res.Zip == req.Zip
+	return res.Zip == req.Zip
 }
 
 // kind of stubs
@@ -31,12 +34,14 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 		// modify the request object itself
 		req.ErrorMsg = "Invalid Address. No such address exists as per Google service";
 	} else {
-	    req.Id = strconv.Itoa(rand.Intn(10000))
+	    rand.Seed(time.Now().Unix())
+	    req.Id = strconv.Itoa(rand.Intn(9999 - 1) + 1)
+	    
 	    req.Coordinate.Lat = googleresp.Coordinate.Lat
 	    req.Coordinate.Lng = googleresp.Coordinate.Lng
 
 	    // TODO: store the response in the mongo db
-	    success := setData(req.Id,req)
+	    success := setData(string(req.Id),req)
 	    if !success {
 	    	fmt.Println("Unable to create an entry in the database")
 	    }
@@ -51,26 +56,18 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetLocation(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside Get location fn");
+	fmt.Println("inside Get location fn")
 	vars := mux.Vars(r)
-	location_id := vars["id"]
+	location_id := vars["location_id"]
+	fmt.Println("Id getting is::"+location_id);
+	//location_id := "1234"
+	fmt.Println("id in get is: " + location_id);
 	var res LocationService
 	
 	//Get the response from Mongo Db for this Location_Id
 	res = getData(location_id)
 	
 	//change this res to the response which needs to be sent back
-	
-	//If error is nil, then fill the response structure
-	res.Id = "Dummy" 
-	res.Name = "Dummy"
-	res.Address = "Dummy"
-	res.City = "Dummy"
-	res.State = "Dummy"
-	res.Zip = "Dummy"
-	res.Coordinate.Lat = "Dummy"
-	res.Coordinate.Lng = "Dummy"
-	res.ErrorMsg = ""
     
     json.NewEncoder(w).Encode(res)
 }
@@ -78,7 +75,7 @@ func GetLocation(w http.ResponseWriter, r *http.Request) {
 func DeleteLocation(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("inside Delete location fn");
 	vars := mux.Vars(r)
-	location_id := vars["id"]
+	location_id := vars["location_id"]
 	
 	//Delete this location id data from Mongo Db
 	success := deleteData(location_id)
@@ -87,10 +84,33 @@ func DeleteLocation(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func setNonEmpty(p *string, s1 string, s2 string) {
+	if s2 != "" {
+		*p = s2	
+	} else {
+		*p = s1
+	}
+}
+
+func mergeLocations (oldLoc LocationService, newLoc LocationService) LocationService {
+
+	var ret LocationService
+	setNonEmpty(&ret.Name, oldLoc.Name, newLoc.Name);
+	setNonEmpty(&ret.Address, oldLoc.Address, newLoc.Address);
+	setNonEmpty(&ret.City, oldLoc.City, newLoc.City);
+	setNonEmpty(&ret.State, oldLoc.State, newLoc.State);
+	setNonEmpty(&ret.Zip, oldLoc.Zip, newLoc.Zip);
+	
+	setNonEmpty(&ret.Coordinate.Lat, oldLoc.Coordinate.Lat, newLoc.Coordinate.Lat);
+	setNonEmpty(&ret.Coordinate.Lng, oldLoc.Coordinate.Lng, newLoc.Coordinate.Lng);
+
+	return ret
+}
+
 
 func PutLocation(w http.ResponseWriter, r *http.Request)  {
 	vars := mux.Vars(r)
-	location_id := vars["id"]
+	location_id := vars["location_id"]
 	var res LocationService
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -100,9 +120,17 @@ func PutLocation(w http.ResponseWriter, r *http.Request)  {
 	    return
 	}
 	
+	// first check that whether an id exists in db or not. 
+	oldLoc := getData(location_id)
+	if oldLoc.ErrorMsg != "" {
+		res.ErrorMsg = "Location id doesn't exist"
+		json.NewEncoder(w).Encode(res)
+		return;
+	}
+
 	var req LocationService
 	err = json.Unmarshal(body, &req)
-	
+
 	googleresp := getGoogleLocation(req.Address + "+" + req.City + "+" + req.State + "+" + req.Zip);
     fmt.Println("resp is: ", googleresp);
 	
@@ -110,17 +138,12 @@ func PutLocation(w http.ResponseWriter, r *http.Request)  {
 		// modify the request object itself
 		res.ErrorMsg = "Invalid Address, cannot update. No such address exists as per Google service";
 	} else {
-	    res.Id = location_id
-	    res.Address = req.Address
-	    res.City = req.City
-	    res.State = req.State
-	    res.Zip = req.Zip
-	    res.ErrorMsg = ""
-	    res.Coordinate.Lat = req.Coordinate.Lat
-	    res.Coordinate.Lng = req.Coordinate.Lng
+		googleresp.Address = req.Address
+		res = mergeLocations(oldLoc, googleresp)
+		res.Id = location_id
 
 	    // TODO: store the response in the mongo db for this Location ID 
-	    success:=setData(location_id, res)
+	    success:=updateData(location_id, res)
 	    if !success {
 	    	fmt.Println("Unable to update data in the database")
 	    }

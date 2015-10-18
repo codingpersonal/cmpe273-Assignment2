@@ -1,10 +1,11 @@
 package main
 
 import (
+//	"gopkg.in/mgo.v2/bson"
 )
 
 type LocationService struct {
-	Id string `json:"id"`
+	Id string `json:"_id" bson:"_id"`
 	Name string `json:"name"`
 	Address string `json:"address"`
 	City string `json:"city"`
