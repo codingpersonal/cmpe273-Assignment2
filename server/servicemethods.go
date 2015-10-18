@@ -5,7 +5,7 @@ import (
 		"fmt"
 		"io/ioutil"
 		"encoding/json"
-//		"github.com/gorilla/mux"
+		"github.com/gorilla/mux"
 		"math/rand"
 		"strconv"
 )
@@ -20,13 +20,13 @@ func ValidateResponseWithRequest(res LocationService, req LocationService) bool 
 // kind of stubs
 func CreateLocation(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	
+
 	var req LocationService
 	err = json.Unmarshal(body, &req)
-	
+
 	googleresp := getGoogleLocation(req.Address + "+" + req.City + "+" + req.State + "+" + req.Zip);
     fmt.Println("resp is: ", googleresp);
-	
+
 	if !ValidateResponseWithRequest(googleresp, req) {
 		// modify the request object itself
 		req.ErrorMsg = "Invalid Address. No such address exists as per Google service";
@@ -41,7 +41,7 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 	    	fmt.Println("Unable to create an entry in the database")
 	    }
     }
-    
+
     json.NewEncoder(w).Encode(req)
     
     if err != nil {
@@ -50,7 +50,7 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetLocation(w http.ResponseWriter, r *http.Request) LocationService{
+func GetLocation(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("inside Get location fn");
 	vars := mux.Vars(r)
 	location_id := vars["id"]
@@ -70,10 +70,9 @@ func GetLocation(w http.ResponseWriter, r *http.Request) LocationService{
 	res.Zip = "Dummy"
 	res.Coordinate.Lat = "Dummy"
 	res.Coordinate.Lng = "Dummy"
-	res.ErrorMsg = nil
+	res.ErrorMsg = ""
     
     json.NewEncoder(w).Encode(res)
-    return res
 }
 
 func DeleteLocation(w http.ResponseWriter, r *http.Request) {
@@ -89,13 +88,19 @@ func DeleteLocation(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func PutLocation(w http.ResponseWriter, r *http.Request) LocationService {
+func PutLocation(w http.ResponseWriter, r *http.Request)  {
 	vars := mux.Vars(r)
 	location_id := vars["id"]
+	var res LocationService
+
 	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		res.ErrorMsg = "Failed to decode the request."
+	    json.NewEncoder(w).Encode(res)
+	    return
+	}
 	
 	var req LocationService
-	var res LocationService
 	err = json.Unmarshal(body, &req)
 	
 	googleresp := getGoogleLocation(req.Address + "+" + req.City + "+" + req.State + "+" + req.Zip);
@@ -105,12 +110,12 @@ func PutLocation(w http.ResponseWriter, r *http.Request) LocationService {
 		// modify the request object itself
 		res.ErrorMsg = "Invalid Address, cannot update. No such address exists as per Google service";
 	} else {
-	    res.location_id = location_id
+	    res.Id = location_id
 	    res.Address = req.Address
 	    res.City = req.City
 	    res.State = req.State
 	    res.Zip = req.Zip
-	    res.ErrorMsg = nil
+	    res.ErrorMsg = ""
 	    res.Coordinate.Lat = req.Coordinate.Lat
 	    res.Coordinate.Lng = req.Coordinate.Lng
 
@@ -122,5 +127,4 @@ func PutLocation(w http.ResponseWriter, r *http.Request) LocationService {
     }
     
     json.NewEncoder(w).Encode(res)
-    return res
 }

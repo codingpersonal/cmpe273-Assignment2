@@ -20,7 +20,7 @@ func main() {
 	
 	reqBody, err := json.Marshal(req)
 	
-	req1, err := http.NewRequest("POST", "http://localhost:8080/locations", strings.NewReader(string(reqBody)))
+	req1, err := http.NewRequest("PUT", "http://localhost:8080/locations/8081", strings.NewReader(string(reqBody)))
 	resp, err := client.Do(req1)
 
 	fmt.Println(resp,err);

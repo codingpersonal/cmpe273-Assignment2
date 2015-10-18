@@ -16,10 +16,14 @@ package main
 //}
 
 func getData(location_id string) LocationService{
+	var a LocationService
+	return a
 }
 
-func setData(location_id, loc LocationService) bool{
+func setData(location_id string, loc LocationService) bool{
+	return true
 }
 
 func deleteData(location_id string) bool {
+	return true
 }
