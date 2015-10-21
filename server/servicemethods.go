@@ -8,8 +8,6 @@ import (
 		"github.com/gorilla/mux"
 		"math/rand"
 		"time"
-//	"gopkg.in/mgo.v2/bson"
-
 		"strconv"
 )
 
@@ -26,6 +24,12 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 
 	var req LocationService
 	err = json.Unmarshal(body, &req)
+    if err != nil {
+		req.ErrorMsg = "Failed to decode the request."
+		w.WriteHeader(400);
+	    json.NewEncoder(w).Encode(req)
+	    return
+    }  
 
 	googleresp := getGoogleLocation(req.Address + "+" + req.City + "+" + req.State + "+" + req.Zip);
     fmt.Println("resp is: ", googleresp);
@@ -33,6 +37,7 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 	if !ValidateResponseWithRequest(googleresp, req) {
 		// modify the request object itself
 		req.ErrorMsg = "Invalid Address. No such address exists as per Google service";
+		w.WriteHeader(400);
 	} else {
 	    rand.Seed(time.Now().Unix())
 	    req.Id = strconv.Itoa(rand.Intn(9999 - 1) + 1)
@@ -44,14 +49,15 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 	    success := setData(string(req.Id),req)
 	    if !success {
 	    	fmt.Println("Unable to create an entry in the database")
+    		req.ErrorMsg = "Unable to create an entry in the database";
+	    	w.WriteHeader(500);
+	    } else {
+       		w.WriteHeader(201);
 	    }
     }
 
     json.NewEncoder(w).Encode(req)
     
-    if err != nil {
-    	fmt.Println("some error");
-    }  
 
 }
 
@@ -66,22 +72,32 @@ func GetLocation(w http.ResponseWriter, r *http.Request) {
 	
 	//Get the response from Mongo Db for this Location_Id
 	res = getData(location_id)
+	if res.ErrorMsg != "" {
+		res.ErrorMsg = "Location id doesn't exist"
+		w.WriteHeader(400);
+		json.NewEncoder(w).Encode(res)
+		return;
+	}
 	
 	//change this res to the response which needs to be sent back
-    
+	w.WriteHeader(200);
     json.NewEncoder(w).Encode(res)
 }
 
 func DeleteLocation(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside Delete location fn");
 	vars := mux.Vars(r)
 	location_id := vars["location_id"]
-	
 	//Delete this location id data from Mongo Db
 	success := deleteData(location_id)
+	var res LocationService
 	if !success {
 		fmt.Println("Unable to delete entry from Mongo Db")
+		res.ErrorMsg = "Unable to update data in the database";
+   		w.WriteHeader(500);
+	} else {
+		w.WriteHeader(200);
 	}
+	json.NewEncoder(w).Encode(res)
 }
 
 func setNonEmpty(p *string, s1 string, s2 string) {
@@ -116,6 +132,7 @@ func PutLocation(w http.ResponseWriter, r *http.Request)  {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		res.ErrorMsg = "Failed to decode the request."
+		w.WriteHeader(400);
 	    json.NewEncoder(w).Encode(res)
 	    return
 	}
@@ -124,6 +141,7 @@ func PutLocation(w http.ResponseWriter, r *http.Request)  {
 	oldLoc := getData(location_id)
 	if oldLoc.ErrorMsg != "" {
 		res.ErrorMsg = "Location id doesn't exist"
+		w.WriteHeader(400);
 		json.NewEncoder(w).Encode(res)
 		return;
 	}
@@ -137,7 +155,9 @@ func PutLocation(w http.ResponseWriter, r *http.Request)  {
 	if !ValidateResponseWithRequest(googleresp, req) {
 		// modify the request object itself
 		res.ErrorMsg = "Invalid Address, cannot update. No such address exists as per Google service";
+		w.WriteHeader(400);
 	} else {
+		googleresp.Name = req.Name
 		googleresp.Address = req.Address
 		res = mergeLocations(oldLoc, googleresp)
 		res.Id = location_id
@@ -146,6 +166,10 @@ func PutLocation(w http.ResponseWriter, r *http.Request)  {
 	    success:=updateData(location_id, res)
 	    if !success {
 	    	fmt.Println("Unable to update data in the database")
+			res.ErrorMsg = "Unable to update data in the database";
+    		w.WriteHeader(500);
+	    } else {
+    		w.WriteHeader(201);
 	    }
     }
     

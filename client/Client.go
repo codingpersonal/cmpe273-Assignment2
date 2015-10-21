@@ -12,9 +12,9 @@ func main() {
 
 	client := &http.Client{}
 	var req LocationService;
-//	req.Name = "Somya Aggarwal"
-	req.Address = "1 facebook way"
-	req.City = "Menlo park"
+	req.Name = "Somu"
+	req.Address = "1 hacker way"
+	req.City = "Mountainview"
 	req.State = "CA"
 	req.Zip = "94025"
 
@@ -22,18 +22,17 @@ func main() {
 	req1, err := http.NewRequest("PUT", "http://localhost:8081/locations/5940", strings.NewReader(string(reqBody)))
 	resp, err := client.Do(req1)
 
-	fmt.Println(resp,err);
+	fmt.Println("resp code is : " , resp);
 	if err != nil {
-	fmt.Println("error!");	
+		fmt.Println("error!");	
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	
+
 	var res LocationService
 	err = json.Unmarshal(body, &res)
-	
-	fmt.Println("Body:",res);
 
+	fmt.Println("Body:",res);
 
 //	url := "http://localhost:8081/locations/" + "5940"
 //	fmt.Println("url is : " + url);

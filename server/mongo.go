@@ -8,15 +8,13 @@ import (
 
 func getSession() *mgo.Session {
 	// Connect to our local mongo
-	session, err := mgo.Dial("mongodb://saurabh:saurabh@ds041164.mongolab.com:41164/test1")
+	session, err := mgo.Dial("mongodb://somya:somya@ds041164.mongolab.com:41164/test1")
 
 	// Check if connection error, is mongo running?
 	if err != nil {
 		panic(err)
 	}
-
 	session.SetMode(mgo.Monotonic, true)
-
 	return session
 }
 
@@ -70,12 +68,3 @@ func deleteData(location_id string) bool {
 	}
 	return true
 }
-
-
-
-
-
-
-
-
-
