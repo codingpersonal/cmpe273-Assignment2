@@ -62,7 +62,6 @@ func CreateLocation(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetLocation(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside Get location fn")
 	vars := mux.Vars(r)
 	location_id := vars["location_id"]
 	fmt.Println("Id getting is::"+location_id);
@@ -92,12 +91,12 @@ func DeleteLocation(w http.ResponseWriter, r *http.Request) {
 	var res LocationService
 	if !success {
 		fmt.Println("Unable to delete entry from Mongo Db")
-		res.ErrorMsg = "Unable to update data in the database";
+		res.ErrorMsg = "Unable to delete data in the database. Probably no such location exist.";
    		w.WriteHeader(500);
+		json.NewEncoder(w).Encode(res)
 	} else {
 		w.WriteHeader(200);
 	}
-	json.NewEncoder(w).Encode(res)
 }
 
 func setNonEmpty(p *string, s1 string, s2 string) {
